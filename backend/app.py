@@ -1,8 +1,11 @@
+from ast import arg
 from flask import Flask, request, send_file
+from flask_cors import CORS
 import glob
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 ROOT_PATH = 'backend/sounds'
 
@@ -12,8 +15,7 @@ ROOT_PATH = 'backend/sounds'
 @app.route('/api/v1/get_sound_dirs')
 def get_sound_dirs():
     return parse_dirs()
-
-
+ 
 def parse_dirs(path=ROOT_PATH):
     dirs_json = {}
     dirs = glob.glob(f'{path}/*')
@@ -33,5 +35,13 @@ def get_sounds(dir, path=ROOT_PATH):
 def play_sound():
     sound = request.args.get('sound')
     splitted_path = sound.split('/')
+    relative_path = '/'.join(splitted_path[1:])
+    return send_file(relative_path)
+
+
+@app.route('/api/v1/get_image')
+def get_image():
+    image = request.args.get('image')
+    splitted_path = image.split('/')
     relative_path = '/'.join(splitted_path[1:])
     return send_file(relative_path)

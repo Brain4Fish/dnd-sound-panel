@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <title>DND Sound Panel</title>
+    <style type="text/css">
+        .icons {
+            width: 400px;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <p id='sounds'></p>
+    </div>
+
+    <script>
+        const API_URL = 'http://192.168.55.191:5000';
+        // get folders
+        getSoundFolders()
+
+        function getSoundFolders() {
+            fetch(API_URL + '/api/v1/get_sound_dirs')
+                .then(response => response.json())
+                .then(data => createIconBlocks(data))
+        }
+
+        function createIconBlocks(data_to_build) {
+            console.log(data_to_build['dirs']);
+            let dirs = data_to_build['dirs'];
+            for (folder of dirs) {
+                let newDiv = document.createElement("div");
+                let newImg = document.createElement("img");
+                newImg.src = getBackgroundImage(folder);
+                newDiv.appendChild(newImg);
+                newImg.setAttribute('class', 'icons');
+                newImg.setAttribute('name', 'play');
+                newImg.setAttribute('data-folder', folder);
+                // newDiv.innerHTML = '<a href="test.html">' + newDiv.innerHTML + '</a>';
+                let soundsDiv = document.getElementById('sounds');
+                soundsDiv.appendChild(newDiv);
+
+            }
+            addEventListener();
+            console.log(document.getElementsByName('play'))
+        }
+
+        function getBackgroundImage(folder) {
+            let imageName = 'icon.jpg';
+            let imageApi = '/api/v1/get_image';
+            let imageUrl = API_URL + imageApi + '?image=' + folder + '/' + imageName;
+            console.log(imageUrl)
+            return imageUrl
+        }
+        // generate icons based on folders and make them clickable
+
+        // Event listener
+        function addEventListener() {
+            document.getElementsByName('play').
+                forEach(iconElem => {
+                    iconElem.addEventListener('click', function (e) {
+                        let audio_elem = document.getElementById(this.dataset.folder);
+                        if (!audio_elem) {
+                            console.log(this.dataset.folder)
+                            e.preventDefault();
+                            var sound = document.createElement('audio');
+                            sound.id = 'audio-player';
+                            sound.src = 'http://192.168.55.191:5000/api/v1/play_sound?sound=' + this.dataset.folder + '/s2.mp3';
+                            sound.setAttribute('id', this.dataset.folder);
+                            iconElem.appendChild(sound);
+                            sound.play();
+                        } else {
+                            if (!audio_elem.paused) {
+                                audio_elem.pause();
+                            } else {
+                                audio_elem.play();
+                            }
+                        }
+                    })
+                })
+
+        }
+        window.addEventListener("play", function(evt)
+        {
+            if(window.$_currentlyPlaying && window.$_currentlyPlaying != evt.target)
+            {
+                window.$_currentlyPlaying.pause();
+            } 
+            window.$_currentlyPlaying = evt.target;
+        }, true);
+    </script>
+</body>
+
+</html>
